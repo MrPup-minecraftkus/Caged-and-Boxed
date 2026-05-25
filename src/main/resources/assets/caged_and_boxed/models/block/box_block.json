@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "particle": "caged_and_boxed:block/box_block",
+    "north": "caged_and_boxed:block/box_block",
+    "west": "caged_and_boxed:block/box_block",
+    "east": "caged_and_boxed:block/box_block",
+    "south": "caged_and_boxed:block/box_block",
+    "up": "caged_and_boxed:block/box_block_up",
+    "down": "caged_and_boxed:block/box_block"
+  }
+}
