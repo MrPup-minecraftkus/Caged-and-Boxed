@@ -2,23 +2,20 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": {
-      "item": "minecraft:iron_ingot"
-    },
     "A": {
-      "item": "minecraft:stripped_spruce_log"
+      "item": "minecraft:paper"
     },
     "B": {
-      "item": "caged_and_boxed:small_cage"
+      "item": "minecraft:slime_ball"
     }
   },
   "pattern": [
     "AAA",
-    "#B#",
+    "ABA",
     "AAA"
   ],
   "result": {
     "count": 1,
-    "id": "caged_and_boxed:medium_cage"
+    "id": "caged_and_boxed:box_block"
   }
 }
