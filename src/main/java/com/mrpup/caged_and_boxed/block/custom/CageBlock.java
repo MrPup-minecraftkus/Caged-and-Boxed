@@ -47,9 +47,9 @@ public class CageBlock extends BaseEntityBlock {
     private final CageSize cageSize;
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
 
-    private static final VoxelShape SHAPE_SMALL  = Shapes.box(0.125, 0, 0.125, 0.875, 0.75, 0.875);
-    private static final VoxelShape SHAPE_MEDIUM = Shapes.box(0.0625, 0, 0.0625, 0.9375, 1.0, 0.9375);
-    private static final VoxelShape SHAPE_UNIVERSAL  = Shapes.box(0.0, 0, 0.0, 1.0, 1.0, 1.0);
+    private static final VoxelShape SHAPE_SMALL    = Shapes.box(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
+    private static final VoxelShape SHAPE_MEDIUM   = Shapes.box(0.0, 0.0, 0.0, 1.0, 2.0, 1.0);
+    private static final VoxelShape SHAPE_UNIVERSAL = Shapes.box(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
 
     public CageBlock(CageSize cageSize, Properties properties) {
         super(properties);
