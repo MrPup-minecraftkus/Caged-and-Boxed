@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "minecraft:stripped_spruce_log",
+    "G": "caged_and_boxed:small_cage",
+    "B": "minecraft:obsidian",
+    "D": "caged_and_boxed:medium_cage",
+    "T": "minecraft:respawn_anchor"
+  },
+  "pattern": [
+    "BAB",
+    "GTD",
+    "BAB"
+  ],
+  "result": {
+    "count": 1,
+    "id": "caged_and_boxed:universal_cage"
+  }
+}

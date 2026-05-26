@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "caged_and_boxed:small_cage",
+    "caged_and_boxed:medium_cage",
+    "caged_and_boxed:universal_cage",
+    "caged_and_boxed:box_block"
+  ]
+}
