@@ -71,8 +71,7 @@ public class ModBlocks {
             Block.Properties.of()
                     .mapColor(MapColor.COLOR_BROWN)
                     .strength(1.5f, 3.0f)
-                    .sound(SoundType.WOOD)
-                    .noCollision(),
+                    .sound(SoundType.WOOD),
             true
     );
 
