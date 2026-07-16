@@ -103,7 +103,7 @@ public class CageBlockItem extends BlockItem {
         level.playSound(null, player.blockPosition(),
                 SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 1f, 0.8f);
         player.sendSystemMessage(
-                Component.literal("Captured: " + mob.getDisplayName().getString())
+                Component.literal("Captured: ").append(mob.getDisplayName())
                         .withStyle(ChatFormatting.GREEN));
 
         return InteractionResult.SUCCESS;

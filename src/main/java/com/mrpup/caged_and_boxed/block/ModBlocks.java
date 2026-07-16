@@ -47,7 +47,6 @@ public class ModBlocks {
                     .mapColor(MapColor.WOOD)
                     .strength(1.5f, 3.0f)
                     .sound(SoundType.WOOD)
-                    .noOcclusion()
                     .requiresCorrectToolForDrops()
                     .setId(ResourceKey.create(BLOCKS.getRegistryKey(), id)))
     );

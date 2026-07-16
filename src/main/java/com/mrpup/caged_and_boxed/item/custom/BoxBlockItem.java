@@ -97,7 +97,7 @@ public class BoxBlockItem extends BlockItem {
         }
 
         level.playSound(null, targetPos, SoundEvents.CHEST_CLOSE, SoundSource.BLOCKS, 1f, 1.2f);
-        player.sendSystemMessage(Component.literal("Stored: " + targetState.getBlock().getDescriptionId()));
+        player.sendSystemMessage(Component.literal("Stored: ").append(targetState.getBlock().getName()));
 
         return InteractionResult.SUCCESS;
     }
@@ -119,19 +119,22 @@ public class BoxBlockItem extends BlockItem {
             if (stored != null && stored.contains("BlockId")) {
                 String id = stored.getString("BlockId").orElse("");
 
-                String name = id;
+                Component name = Component.literal(id);
                 Identifier parsedId = Identifier.tryParse(id);
+
                 if (parsedId != null) {
-                    name = parsedId.getPath();
-                }
-                if (!name.isEmpty()) {
-                    name = name.substring(0, 1).toUpperCase() + name.substring(1);
+                    var block = BuiltInRegistries.BLOCK.getOptional(parsedId).orElse(null);
+                    if (block != null) {
+                        name = block.getName();
+                    }
                 }
 
-                builder.accept(Component.literal("Contains: " + name)
+                builder.accept(Component.literal("Contains: ")
+                        .append(name)
                         .withStyle(ChatFormatting.AQUA));
             }
-            builder.accept(Component.literal("Shift+Right-click in placed box to release")
+
+            builder.accept(Component.literal("Shift + Right-click in placed box to release")
                     .withStyle(ChatFormatting.YELLOW));
         } else {
             builder.accept(Component.literal("Right-click a block to store it")
