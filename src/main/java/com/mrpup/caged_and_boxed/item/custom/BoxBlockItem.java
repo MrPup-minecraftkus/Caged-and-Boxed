@@ -10,6 +10,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
@@ -95,7 +96,7 @@ public class BoxBlockItem extends BlockItem {
         }
 
         level.playSound(null, targetPos, SoundEvents.CHEST_CLOSE, SoundSource.BLOCKS, 1f, 1.2f);
-        player.displayClientMessage(Component.literal("Stored: " + targetState.getBlock().getDescriptionId()), true);
+        player.displayClientMessage(Component.literal("Stored: ").append(targetState.getBlock().getName()), true);
 
         return InteractionResult.SUCCESS;
     }
@@ -107,20 +108,32 @@ public class BoxBlockItem extends BlockItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context,
-                                List<Component> lines, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> lines, TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
 
         CustomData data = stack.get(DataComponents.CUSTOM_DATA);
         if (data != null && data.contains(TAG_STORED)) {
+
             CompoundTag stored = data.copyTag().getCompound(TAG_STORED);
+
             if (stored.contains("BlockId")) {
                 String id = stored.getString("BlockId");
-                String name = id.contains(":") ? id.split(":")[1] : id;
-                lines.add(Component.literal("Contains: " + name)
+                Component name = Component.literal(id);
+
+                ResourceLocation parsedId = ResourceLocation.tryParse(id);
+
+                if (parsedId != null) {
+                    var block = BuiltInRegistries.BLOCK.getOptional(parsedId).orElse(null);
+                    if (block != null) {
+                        name = block.getName();
+                    }
+                }
+
+                lines.add(Component.literal("Contains: ").append(name)
                         .withStyle(ChatFormatting.AQUA));
             }
-            lines.add(Component.literal("Shift+Right-click in placed box to release")
+
+            lines.add(Component.literal("Shift + Right-click in placed box to release")
                     .withStyle(ChatFormatting.YELLOW));
         } else {
             lines.add(Component.literal("Right-click a block to store it")

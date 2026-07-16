@@ -52,8 +52,7 @@ public class ModBlocks {
             new BoxBlock(                    BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOD)
                     .strength(1.5f, 3.0f)
-                    .sound(SoundType.WOOD)
-                    .noOcclusion()),
+                    .sound(SoundType.WOOD)),
             "box_block",
             true
     );

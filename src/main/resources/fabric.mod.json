@@ -11,7 +11,7 @@
 		"sources": "https://github.com/MrPup-minecraftkus/Caged-and-Boxed"
 	},
 	"license": "MIT",
-	"icon": "assets/caged_and_boxed/cage_logo.png",
+	"icon": "cage_logo.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
