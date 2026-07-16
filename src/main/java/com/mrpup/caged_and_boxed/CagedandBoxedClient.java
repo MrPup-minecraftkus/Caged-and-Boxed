@@ -9,7 +9,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 
 @Mod(value = CagedandBoxed.MOD_ID, dist = Dist.CLIENT)
-@EventBusSubscriber(modid = CagedandBoxed.MOD_ID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = CagedandBoxed.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class CagedandBoxedClient {
 
     @SubscribeEvent

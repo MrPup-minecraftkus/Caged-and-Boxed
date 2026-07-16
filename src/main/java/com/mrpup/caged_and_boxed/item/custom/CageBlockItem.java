@@ -46,8 +46,7 @@ public class CageBlockItem extends BlockItem {
     }
 
     @Override
-    public InteractionResult interactLivingEntity(ItemStack stack, Player player,
-                                                  LivingEntity target, InteractionHand hand) {
+    public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity target, InteractionHand hand) {
         if (isFilled(stack)) return InteractionResult.PASS;
         if (!(target instanceof Mob mob)) return InteractionResult.PASS;
 
@@ -98,7 +97,7 @@ public class CageBlockItem extends BlockItem {
         level.playSound(null, player.blockPosition(),
                 SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 1f, 0.8f);
         player.displayClientMessage(
-                Component.literal("Captured: " + mob.getDisplayName().getString())
+                Component.literal("Captured: ").append(mob.getDisplayName())
                         .withStyle(ChatFormatting.GREEN), true);
 
         return InteractionResult.SUCCESS;
@@ -132,8 +131,7 @@ public class CageBlockItem extends BlockItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context,
-                                List<Component> lines, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> lines, TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
 
         CageSize size = getCageSize();
