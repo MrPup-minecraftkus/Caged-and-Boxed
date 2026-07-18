@@ -65,9 +65,9 @@ public class BoxBlockItem extends BlockItem {
         HolderLookup.Provider registries = level.registryAccess();
 
         CompoundTag storedTag = new CompoundTag();
-        BlockState.CODEC.encodeStart(
-                registries.createSerializationContext(NbtOps.INSTANCE), targetState
-        ).result().ifPresent(tag -> storedTag.put("BlockState", tag));
+        BlockState.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), targetState)
+                .result()
+                .ifPresent(tag -> storedTag.put("BlockState", tag));
         storedTag.putString("BlockId", BuiltInRegistries.BLOCK.getKey(targetState.getBlock()).toString());
 
         BlockEntity targetBE = level.getBlockEntity(targetPos);

@@ -61,8 +61,7 @@ public class BoxBlock extends BaseEntityBlock {
 
 
     @Override
-    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
-                                            Player player, BlockHitResult hit) {
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
 
         if (level.isClientSide) return InteractionResult.SUCCESS;
         if (!(level.getBlockEntity(pos) instanceof BoxBlockEntity box)) return InteractionResult.PASS;
@@ -73,8 +72,7 @@ public class BoxBlock extends BaseEntityBlock {
     }
 
 
-    private void placeStoredBlock(BoxBlockEntity box, ServerLevel level,
-                                  BlockPos boxPos, Player player) {
+    private void placeStoredBlock(BoxBlockEntity box, ServerLevel level, BlockPos boxPos, Player player) {
         HolderLookup.Provider registries = level.registryAccess();
         CompoundTag storedTag = box.getStoredTag();
         if (storedTag == null) return;
@@ -88,8 +86,7 @@ public class BoxBlock extends BaseEntityBlock {
         }
 
         if (restoredState == null && storedTag.contains("BlockId")) {
-            ResourceLocation id =
-                    ResourceLocation.tryParse(storedTag.getString("BlockId"));
+            ResourceLocation id = ResourceLocation.tryParse(storedTag.getString("BlockId"));
             if (id != null) {
                 Block block = BuiltInRegistries.BLOCK.get(id);
                 if (block != null) restoredState = block.defaultBlockState();
@@ -120,8 +117,7 @@ public class BoxBlock extends BaseEntityBlock {
     }
 
     @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos,
-                         BlockState newState, boolean isMoving) {
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
         if (!state.is(newState.getBlock())) {
             if (level.getBlockEntity(pos) instanceof BoxBlockEntity box) {
                 if (box.isRestoring()) {
@@ -132,8 +128,7 @@ public class BoxBlock extends BaseEntityBlock {
                 }
 
                 ItemStack drop = box.createItemStack();
-                Containers.dropItemStack(
-                        level, pos.getX(), pos.getY(), pos.getZ(), drop);
+                Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), drop);
             }
         }
         super.onRemove(state, level, pos, newState, isMoving);
@@ -142,13 +137,11 @@ public class BoxBlock extends BaseEntityBlock {
 
 
     @Override
-    public void setPlacedBy(Level level, BlockPos pos, BlockState state,
-                            @Nullable LivingEntity placer, ItemStack stack) {
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
 
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof BoxBlockEntity box) {
-            CustomData data =
-                    stack.get(DataComponents.CUSTOM_DATA);
+            CustomData data = stack.get(DataComponents.CUSTOM_DATA);
             if (data != null && data.contains("StoredBlock")) {
                 box.setStoredBlock(data.copyTag().getCompound("StoredBlock"));
             }

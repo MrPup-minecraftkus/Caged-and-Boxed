@@ -46,8 +46,8 @@ public class CageBlock extends BaseEntityBlock {
     private final CageSize cageSize;
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
 
-    private static final VoxelShape SHAPE_SMALL    = Shapes.box(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
-    private static final VoxelShape SHAPE_MEDIUM   = Shapes.box(0.0, 0.0, 0.0, 1.0, 2.0, 1.0);
+    private static final VoxelShape SHAPE_SMALL = Shapes.box(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
+    private static final VoxelShape SHAPE_MEDIUM = Shapes.box(0.0, 0.0, 0.0, 1.0, 2.0, 1.0);
     private static final VoxelShape SHAPE_UNIVERSAL = Shapes.box(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
 
     public CageBlock(CageSize cageSize, Properties properties) {
@@ -104,16 +104,19 @@ public class CageBlock extends BaseEntityBlock {
 
 
     @Override
-    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
-                                            Player player, BlockHitResult hit) {
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        if (level.isClientSide) {
+            if (level.getBlockEntity(pos) instanceof CageBlockEntity cage && cage.hasMob()) {
+                cage.clearMob();
+            }
+            return InteractionResult.SUCCESS;
+        }
+
         if (!(level.getBlockEntity(pos) instanceof CageBlockEntity cage)) return InteractionResult.PASS;
 
-        if (!level.isClientSide) {
-            if (cage.hasMob()) {
-                releaseMob(cage, (ServerLevel) level, pos, player);
-            }
-        }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        releaseMob(cage, (ServerLevel) level, pos, player);
+
+        return InteractionResult.CONSUME;
     }
 
     public void releaseMob(CageBlockEntity cage, ServerLevel level, BlockPos pos, Player player) {
