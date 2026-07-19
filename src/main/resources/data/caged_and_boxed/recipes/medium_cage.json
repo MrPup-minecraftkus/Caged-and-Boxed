@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "#": {
+      "item": "minecraft:iron_ingot"
+    },
+    "A": {
+      "item": "minecraft:stripped_spruce_log"
+    },
+  "B": {
+      "item": "caged_and_boxed:small_cage"
+    }
+  },
+  "pattern": [
+    "AAA",
+    "#B#",
+    "AAA"
+  ],
+  "result": {
+    "count": 1,
+    "item": "caged_and_boxed:medium_cage"
+  }
+}

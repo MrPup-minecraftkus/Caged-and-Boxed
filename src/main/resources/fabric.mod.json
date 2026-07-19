@@ -1,0 +1,30 @@
+{
+	"schemaVersion": 1,
+	"id": "caged_and_boxed",
+	"version": "${version}",
+	"name": "Caged and Boxed",
+    "description": "Easily transport blocks in boxes and entities in cages!",
+    "authors": [
+      "MrPup(minecraftkus)"
+    ],
+    "contact": {
+      "sources": "https://github.com/MrPup-minecraftkus/Caged-and-Boxed"
+    },
+	"license": "MIT",
+	"icon": "cage_logo.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.mrpup.caged_and_boxed.CagedAndBoxed"
+		],
+		"client": [
+			"com.mrpup.caged_and_boxed.client.CagedAndBoxedClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.18.2",
+		"minecraft": "~1.20.1",
+		"java": ">=17",
+		"fabric-api": "*"
+	}
+}
