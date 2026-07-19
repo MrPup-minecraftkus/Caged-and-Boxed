@@ -66,8 +66,9 @@ public class BoxBlockItem extends BlockItem {
 
         CompoundTag storedTag = new CompoundTag();
         BlockState.CODEC.encodeStart(
-                registries.createSerializationContext(NbtOps.INSTANCE), targetState
-        ).result().ifPresent(tag -> storedTag.put("BlockState", tag));
+                registries.createSerializationContext(NbtOps.INSTANCE), targetState)
+                .result()
+                .ifPresent(tag -> storedTag.put("BlockState", tag));
         storedTag.putString("BlockId", BuiltInRegistries.BLOCK.getKey(targetState.getBlock()).toString());
 
         BlockEntity targetBE = level.getBlockEntity(targetPos);
@@ -108,8 +109,7 @@ public class BoxBlockItem extends BlockItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context,
-                                List<Component> lines, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> lines, TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
 
         CustomData data = stack.get(DataComponents.CUSTOM_DATA);

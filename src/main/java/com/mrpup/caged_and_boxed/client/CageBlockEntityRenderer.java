@@ -9,11 +9,14 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,17 +24,21 @@ import java.util.Optional;
 
 public class CageBlockEntityRenderer implements BlockEntityRenderer<CageBlockEntity> {
 
-    private static final Map<String, Entity> ENTITY_CACHE = new HashMap<>();
+    private final Map<BlockPos, Entity> entityCache = new HashMap<>();
 
     public CageBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
 
     }
 
     @Override
-    public void render(CageBlockEntity blockEntity, float partialTick, PoseStack poseStack,
-                       MultiBufferSource bufferSource, int combinedLight, int combinedOverlay) {
+    public void render(CageBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int combinedLight, int combinedOverlay) {
 
-        if (!blockEntity.hasMob()) return;
+        BlockPos pos = blockEntity.getBlockPos();
+
+        if (!blockEntity.hasMob()) {
+            entityCache.remove(pos);
+            return;
+        }
 
         String typeId = blockEntity.getEntityTypeId();
         CompoundTag entityData = blockEntity.getEntityData();
@@ -40,19 +47,27 @@ public class CageBlockEntityRenderer implements BlockEntityRenderer<CageBlockEnt
         Level level = blockEntity.getLevel();
         if (level == null) return;
 
-        Entity entity = getOrCreateEntity(typeId, entityData, level);
+        Entity entity = getOrCreateEntity(pos, entityData, level);
         if (entity == null) return;
 
-        float scale = getScale(blockEntity);
+        BlockState state = blockEntity.getBlockState();
+        Direction facing = state.hasProperty(CageBlock.FACING) ? state.getValue(CageBlock.FACING) : Direction.NORTH;
 
-        entity.setYRot(0f);
+        float yRot = facing.toYRot();
+        float scale = getScale(blockEntity, entity);
+
+        entity.tickCount = 0;
+
+        entity.setYRot(yRot);
         entity.setXRot(0f);
-        entity.setYHeadRot(0f);
-        entity.setYBodyRot(0f);
+        entity.yRotO = yRot;
+        entity.xRotO = 0f;
 
         if (entity instanceof LivingEntity living) {
-            living.yBodyRotO = 0f;
-            living.yHeadRotO = 0f;
+            living.yBodyRot = yRot;
+            living.yBodyRotO = yRot;
+            living.yHeadRot = yRot;
+            living.yHeadRotO = yRot;
         }
 
         poseStack.pushPose();
@@ -64,15 +79,14 @@ public class CageBlockEntityRenderer implements BlockEntityRenderer<CageBlockEnt
         poseStack.translate(0, heightOffset, 0);
 
         Minecraft mc = Minecraft.getInstance();
-        EntityRenderer<? super Entity> renderer =
-                (EntityRenderer<? super Entity>) mc.getEntityRenderDispatcher().getRenderer(entity);
+        EntityRenderer<? super Entity> renderer = (EntityRenderer<? super Entity>) mc.getEntityRenderDispatcher().getRenderer(entity);
 
         renderer.render(entity, 0f, partialTick, poseStack, bufferSource, combinedLight);
 
         poseStack.popPose();
     }
 
-    private float getScale(CageBlockEntity blockEntity) {
+    private float getScale(CageBlockEntity blockEntity, Entity e) {
         if (!(blockEntity.getBlockState().getBlock() instanceof CageBlock cb)) return 0.3f;
 
         CageSize size = cb.getCageSize();
@@ -83,22 +97,15 @@ public class CageBlockEntityRenderer implements BlockEntityRenderer<CageBlockEnt
             case UNIVERSAL  -> 0.6f;
         };
 
-        String typeId = blockEntity.getEntityTypeId();
-        if (typeId == null) return 0.3f;
-
-        Entity e = ENTITY_CACHE.get(typeId);
-        if (e == null) return 0.3f;
-
         float mobMaxDim = Math.max(e.getBbWidth(), e.getBbHeight());
         if (mobMaxDim <= 0) return 0.3f;
 
         return Math.min(available / mobMaxDim, 0.9f);
     }
 
-    private Entity getOrCreateEntity(String typeId, CompoundTag entityData, Level level) {
-        if (ENTITY_CACHE.containsKey(typeId)) {
-            return ENTITY_CACHE.get(typeId);
-        }
+    private Entity getOrCreateEntity(BlockPos pos, CompoundTag entityData, Level level) {
+        Entity cached = entityCache.get(pos);
+        if (cached != null) return cached;
 
         Optional<EntityType<?>> typeOpt = EntityType.by(entityData);
         if (typeOpt.isEmpty()) return null;
@@ -110,11 +117,11 @@ public class CageBlockEntityRenderer implements BlockEntityRenderer<CageBlockEnt
             entity.load(entityData);
         } catch (Exception ignored) {}
 
-        ENTITY_CACHE.put(typeId, entity);
+        entityCache.put(pos, entity);
         return entity;
     }
 
-    public static void clearCache() {
-        ENTITY_CACHE.clear();
+    public void clearCache() {
+        entityCache.clear();
     }
 }

@@ -89,8 +89,7 @@ public class BoxBlockEntity extends BlockEntity {
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt,
-                             HolderLookup.Provider registries) {
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider registries) {
         if (pkt.getTag() != null) loadAdditional(pkt.getTag(), registries);
     }
 
