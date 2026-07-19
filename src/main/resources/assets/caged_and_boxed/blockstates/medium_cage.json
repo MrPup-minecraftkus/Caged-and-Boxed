@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "caged_and_boxed:block/medium_cage" },
+    "facing=south": { "model": "caged_and_boxed:block/medium_cage", "y": 180 },
+    "facing=east":  { "model": "caged_and_boxed:block/medium_cage", "y": 90 },
+    "facing=west":  { "model": "caged_and_boxed:block/medium_cage", "y": 270 }
+  }
+}
