@@ -31,10 +31,6 @@ public class ModBlocks {
         return ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(CagedAndBoxed.MOD_ID, name));
     }
 
-    private static ResourceKey<Item> keyOfItem(String name) {
-        return ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(CagedAndBoxed.MOD_ID, name));
-    }
-
     private static Block.Properties cageProps() {
         return Block.Properties.of()
                 .mapColor(MapColor.COLOR_BLACK)

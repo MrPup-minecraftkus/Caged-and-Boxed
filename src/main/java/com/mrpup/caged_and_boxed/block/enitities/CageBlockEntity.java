@@ -106,8 +106,7 @@ public class CageBlockEntity extends BlockEntity {
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
 
-        try (ProblemReporter.ScopedCollector reporter =
-                     new ProblemReporter.ScopedCollector(this.problemPath(), null)) {
+        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(this.problemPath(), null)) {
 
             TagValueOutput output = TagValueOutput.createWithContext(reporter, registries);
             this.saveAdditional(output);

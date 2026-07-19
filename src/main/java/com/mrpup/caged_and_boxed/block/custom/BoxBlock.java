@@ -66,8 +66,7 @@ public class BoxBlock extends BaseEntityBlock {
 
 
     @Override
-    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
-                                            Player player, BlockHitResult hit) {
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
 
         if (level.isClientSide()) return InteractionResult.SUCCESS;
         if (!(level.getBlockEntity(pos) instanceof BoxBlockEntity box)) return InteractionResult.PASS;
@@ -78,8 +77,7 @@ public class BoxBlock extends BaseEntityBlock {
     }
 
 
-    private void placeStoredBlock(BoxBlockEntity box, ServerLevel level,
-                                  BlockPos boxPos, Player player) {
+    private void placeStoredBlock(BoxBlockEntity box, ServerLevel level, BlockPos boxPos, Player player) {
         HolderLookup.Provider registries = level.registryAccess();
         CompoundTag storedTag = box.getStoredTag();
         if (storedTag == null) return;
@@ -88,8 +86,9 @@ public class BoxBlock extends BaseEntityBlock {
         if (storedTag.contains("BlockState")) {
             restoredState = BlockState.CODEC.parse(
                     level.registryAccess().createSerializationContext(NbtOps.INSTANCE),
-                    storedTag.get("BlockState")
-            ).result().orElse(null);
+                    storedTag.get("BlockState"))
+                    .result()
+                    .orElse(null);
         }
 
         if (restoredState == null && storedTag.contains("BlockId")) {
@@ -115,11 +114,9 @@ public class BoxBlock extends BaseEntityBlock {
                 beTag.putInt("z", boxPos.getZ());
 
                 Logger logger = LoggerFactory.getLogger(newBE.getClass());
-                try (ProblemReporter.ScopedCollector reporter =
-                             new ProblemReporter.ScopedCollector(logger)) {
+                try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(logger)) {
 
-                    ValueInput input =
-                            TagValueInput.create(reporter, registries, beTag);
+                    ValueInput input = TagValueInput.create(reporter, registries, beTag);
 
                     newBE.loadWithComponents(input);
                 }
@@ -148,8 +145,7 @@ public class BoxBlock extends BaseEntityBlock {
     }
 
     @Override
-    public void setPlacedBy(Level level, BlockPos pos, BlockState state,
-                            @Nullable LivingEntity placer, ItemStack stack) {
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
 
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof BoxBlockEntity box) {

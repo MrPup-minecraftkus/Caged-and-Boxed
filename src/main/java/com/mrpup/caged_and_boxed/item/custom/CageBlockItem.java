@@ -8,6 +8,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -48,8 +49,7 @@ public class CageBlockItem extends BlockItem {
     }
 
     @Override
-    public InteractionResult interactLivingEntity(ItemStack stack, Player player,
-                                                  LivingEntity target, InteractionHand hand) {
+    public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity target, InteractionHand hand) {
         if (isFilled(stack)) return InteractionResult.PASS;
         if (!(target instanceof Mob mob)) return InteractionResult.PASS;
 
@@ -68,8 +68,7 @@ public class CageBlockItem extends BlockItem {
 
         ServerLevel serverLevel = (ServerLevel) level;
         CompoundTag entityData;
-        try (ProblemReporter.ScopedCollector reporter =
-                     new ProblemReporter.ScopedCollector(mob.problemPath(), null)) {
+        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(mob.problemPath(), null)) {
             TagValueOutput output = TagValueOutput.createWithContext(reporter, serverLevel.registryAccess());
             mob.saveWithoutId(output);
             entityData = output.buildResult();
@@ -190,14 +189,16 @@ public class CageBlockItem extends BlockItem {
         String typeStr = getCapturedEntityType(stack);
         if (typeStr == null) return;
 
-        Optional<EntityType<?>> typeOpt = EntityType.byString(typeStr);
+        Identifier typeId = Identifier.tryParse(typeStr);
+        if (typeId == null) return;
+
+        Optional<EntityType<?>> typeOpt = BuiltInRegistries.ENTITY_TYPE.getOptional(typeId);
         if (typeOpt.isEmpty()) return;
 
         Entity entity = typeOpt.get().create(level, EntitySpawnReason.TRIGGERED);
         if (entity == null) return;
 
-        try (ProblemReporter.ScopedCollector reporter =
-                     new ProblemReporter.ScopedCollector(entity.problemPath(), null)) {
+        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(entity.problemPath(), null)) {
             ValueInput input = TagValueInput.create(reporter, level.registryAccess(), entityData);
             entity.load(input);
         }
