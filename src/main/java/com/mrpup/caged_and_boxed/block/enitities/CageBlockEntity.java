@@ -106,8 +106,7 @@ public class CageBlockEntity extends BlockEntity {
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
 
-        try (ProblemReporter.ScopedCollector reporter =
-                     new ProblemReporter.ScopedCollector(this.problemPath(), null)) {
+        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(this.problemPath(), null)) {
 
             TagValueOutput output = TagValueOutput.createWithContext(reporter, registries);
             this.saveAdditional(output);
@@ -140,8 +139,7 @@ public class CageBlockEntity extends BlockEntity {
             tag.put(TAG_ENTITY_DATA, entityData);
             tag.putString(TAG_ENTITY_TYPE, entityTypeId);
             tag.putString(TAG_ENTITY_NAME, entityName != null ? entityName : "");
-            stack.set(DataComponents.CUSTOM_DATA,
-                    CustomData.of(tag));
+            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         }
 
         return stack;

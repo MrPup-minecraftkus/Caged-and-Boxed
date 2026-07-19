@@ -14,6 +14,8 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
@@ -23,6 +25,7 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.phys.Vec3;
@@ -30,12 +33,16 @@ import net.minecraft.world.phys.Vec3;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CageBlockEntityRenderer implements BlockEntityRenderer<CageBlockEntity, CageBlockEntityRenderState> {
 
-    private static final Map<String, Entity> ENTITY_CACHE = new HashMap<>();
+    private static final AtomicInteger ENTITY_ID_COUNTER = new AtomicInteger(-1);
+
+    private final Map<BlockPos, Entity> entityCache = new HashMap<>();
 
     public CageBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
+
     }
 
     @Override
@@ -44,33 +51,32 @@ public class CageBlockEntityRenderer implements BlockEntityRenderer<CageBlockEnt
     }
 
     @Override
-    public void extractRenderState(CageBlockEntity blockEntity,
-                                   CageBlockEntityRenderState state,
-                                   float partialTicks,
-                                   Vec3 cameraPosition,
-                                   ModelFeatureRenderer.CrumblingOverlay breakProgress) {
-
+    public void extractRenderState(CageBlockEntity blockEntity, CageBlockEntityRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.CrumblingOverlay breakProgress) {
 
         BlockEntityRenderState.extractBase(blockEntity, state, breakProgress);
 
-        state.hasMob = blockEntity.hasMob();
-        if (!state.hasMob) {
+        BlockPos pos = blockEntity.getBlockPos();
 
+        state.hasMob = blockEntity.hasMob();
+
+        if (!state.hasMob) {
+            entityCache.remove(pos);
             return;
         }
 
+        state.blockPos = pos;
         state.entityTypeId = blockEntity.getEntityTypeId();
         state.entityData = blockEntity.getEntityData();
         state.partialTick = partialTicks;
-        state.scale = computeScale(blockEntity);
+
+        BlockState blockState = blockEntity.getBlockState();
+        state.facing = blockState.hasProperty(CageBlock.FACING) ? blockState.getValue(CageBlock.FACING) : Direction.NORTH;
+
+        state.scale = computeScale(blockEntity, pos);
     }
 
     @Override
-    public void submit(CageBlockEntityRenderState state,
-                       PoseStack poseStack,
-                       SubmitNodeCollector collector,
-                       CameraRenderState cameraState) {
-
+    public void submit(CageBlockEntityRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
 
         if (!state.hasMob) {
             return;
@@ -84,29 +90,36 @@ public class CageBlockEntityRenderer implements BlockEntityRenderer<CageBlockEnt
             return;
         }
 
-        Entity entity = getOrCreateEntity(state.entityTypeId, state.entityData, level);
+        Entity entity = getOrCreateEntity(state.blockPos, state.entityTypeId, state.entityData, level);
         if (entity == null) {
             return;
         }
 
-        entity.setYRot(0f);
+        float yRot = state.facing.toYRot();
+
+        entity.tickCount = 0;
+
+        entity.setYRot(yRot);
         entity.setXRot(0f);
+        entity.yRotO = yRot;
+        entity.xRotO = 0f;
 
         if (entity instanceof LivingEntity living) {
-            living.yHeadRot = 0f;
-            living.yBodyRot = 0f;
-            living.yHeadRotO = 0f;
-            living.yBodyRotO = 0f;
+            living.yHeadRot = yRot;
+            living.yBodyRot = yRot;
+            living.yHeadRotO = yRot;
+            living.yBodyRotO = yRot;
         }
 
         poseStack.pushPose();
-        poseStack.translate(0.5, 0.1, 0.5);
+        poseStack.translate(0.5, 0.5, 0.5);
         poseStack.scale(state.scale, state.scale, state.scale);
 
-        Minecraft mc = Minecraft.getInstance();
-        EntityRenderer<? super Entity, ?> renderer =
-                (EntityRenderer<? super Entity, ?>) mc.getEntityRenderDispatcher().getRenderer(entity);
+        float heightOffset = -(entity.getBbHeight() / 2.0f);
+        poseStack.translate(0, heightOffset, 0);
 
+        Minecraft mc = Minecraft.getInstance();
+        EntityRenderer<? super Entity, ?> renderer = (EntityRenderer<? super Entity, ?>) mc.getEntityRenderDispatcher().getRenderer(entity);
 
         if (renderer != null) {
             EntityRenderState entityRenderState = renderer.createRenderState(entity, state.partialTick);
@@ -121,7 +134,7 @@ public class CageBlockEntityRenderer implements BlockEntityRenderer<CageBlockEnt
         poseStack.popPose();
     }
 
-    private float computeScale(CageBlockEntity blockEntity) {
+    private float computeScale(CageBlockEntity blockEntity, BlockPos pos) {
 
         float available = 0.55f;
 
@@ -144,7 +157,7 @@ public class CageBlockEntityRenderer implements BlockEntityRenderer<CageBlockEnt
             return 0.3f;
         }
 
-        Entity tempEntity = getOrCreateEntity(typeId, blockEntity.getEntityData(), level);
+        Entity tempEntity = getOrCreateEntity(pos, typeId, blockEntity.getEntityData(), level);
         if (tempEntity == null) {
             return 0.3f;
         }
@@ -155,16 +168,14 @@ public class CageBlockEntityRenderer implements BlockEntityRenderer<CageBlockEnt
             return 0.3f;
         }
 
-        float finalScale = Math.min(available / mobMaxDim, 0.9f);
-        return finalScale;
+        return Math.min(available / mobMaxDim, 0.9f);
     }
 
-    private static Entity getOrCreateEntity(String typeId, CompoundTag entityData, Level level) {
-        Entity cached = ENTITY_CACHE.get(typeId);
+    private Entity getOrCreateEntity(BlockPos pos, String typeId, CompoundTag entityData, Level level) {
+        Entity cached = entityCache.get(pos);
         if (cached != null) {
             return cached;
         }
-
 
         try {
             Identifier resourceLocation = Identifier.parse(typeId);
@@ -180,8 +191,7 @@ public class CageBlockEntityRenderer implements BlockEntityRenderer<CageBlockEnt
                 return null;
             }
 
-            try (ProblemReporter.ScopedCollector reporter =
-                         new ProblemReporter.ScopedCollector(LogUtils.getLogger())) {
+            try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(LogUtils.getLogger())) {
 
                 ValueInput input = TagValueInput.create(reporter, level.registryAccess(), entityData);
 
@@ -190,15 +200,17 @@ public class CageBlockEntityRenderer implements BlockEntityRenderer<CageBlockEnt
                 return null;
             }
 
-            ENTITY_CACHE.put(typeId, entity);
+            entity.setId(ENTITY_ID_COUNTER.getAndDecrement());
+
+            entityCache.put(pos, entity);
             return entity;
         } catch (Exception e) {
             return null;
         }
     }
 
-    public static void clearCache() {
-        ENTITY_CACHE.clear();
+    public void clearCache() {
+        entityCache.clear();
     }
 
     @Override

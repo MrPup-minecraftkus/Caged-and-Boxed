@@ -1,17 +1,21 @@
 package com.mrpup.caged_and_boxed.block.custom;
 
+import com.mojang.logging.LogUtils;
 import com.mojang.serialization.MapCodec;
 import com.mrpup.caged_and_boxed.block.enitities.CageBlockEntity;
 import com.mrpup.caged_and_boxed.util.CageSize;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -49,8 +53,8 @@ public class CageBlock extends BaseEntityBlock {
     private final CageSize cageSize;
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
 
-    private static final VoxelShape SHAPE_SMALL    = Shapes.box(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
-    private static final VoxelShape SHAPE_MEDIUM   = Shapes.box(0.0, 0.0, 0.0, 1.0, 2.0, 1.0);
+    private static final VoxelShape SHAPE_SMALL = Shapes.box(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
+    private static final VoxelShape SHAPE_MEDIUM = Shapes.box(0.0, 0.0, 0.0, 1.0, 2.0, 1.0);
     private static final VoxelShape SHAPE_UNIVERSAL = Shapes.box(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
 
     public CageBlock(CageSize cageSize, Properties properties) {
@@ -107,44 +111,51 @@ public class CageBlock extends BaseEntityBlock {
 
 
     @Override
-    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
-                                            Player player, BlockHitResult hit) {
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        if (level.isClientSide()) {
+            if (level.getBlockEntity(pos) instanceof CageBlockEntity cage && cage.hasMob()) {
+                cage.clearMob();
+            }
+            return InteractionResult.SUCCESS;
+        }
+
         if (!(level.getBlockEntity(pos) instanceof CageBlockEntity cage)) return InteractionResult.PASS;
 
-        if (!level.isClientSide()) {
-            if (cage.hasMob()) {
-                releaseMob(cage, (ServerLevel) level, pos, player);
-            }
-        }
-        return InteractionResult.SUCCESS;
+        releaseMob(cage, (ServerLevel) level, pos, player);
+
+        return InteractionResult.CONSUME;
     }
 
     public void releaseMob(CageBlockEntity cage, ServerLevel level, BlockPos pos, Player player) {
         CompoundTag entityData = cage.getEntityData();
         if (entityData == null) return;
 
-        try (net.minecraft.util.ProblemReporter.ScopedCollector reporter =
-                     new net.minecraft.util.ProblemReporter.ScopedCollector(com.mojang.logging.LogUtils.getLogger())) {
+        String typeId = cage.getEntityTypeId();
+        if (typeId == null) return;
 
-            ValueInput input =
-                    TagValueInput.create(reporter, level.registryAccess(), entityData);
+        Identifier resourceLocation = Identifier.tryParse(typeId);
+        if (resourceLocation == null) return;
 
-            Optional<EntityType<?>> typeOpt = EntityType.by(input);
-            if (typeOpt.isEmpty()) return;
+        Optional<EntityType<?>> typeOpt = BuiltInRegistries.ENTITY_TYPE.getOptional(resourceLocation);
+        if (typeOpt.isEmpty()) return;
 
-            Entity entity = typeOpt.get().create(level, EntitySpawnReason.TRIGGERED);
-            if (entity == null) return;
+        Entity entity = typeOpt.get().create(level, EntitySpawnReason.TRIGGERED);
+        if (entity == null) return;
 
+        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(entity.problemPath(), LogUtils.getLogger())) {
+            ValueInput input = TagValueInput.create(reporter, level.registryAccess(), entityData);
             entity.load(input);
-
-            entity.setPos(pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5);
-            level.addFreshEntity(entity);
-
-            cage.clearMob();
-
-            level.playSound(null, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1f, 1f);
-            player.sendSystemMessage(Component.literal("Mob released!"));
+        } catch (Exception e) {
+            return;
         }
+
+        entity.setPos(pos.getX() + 1, pos.getY() + 1.0, pos.getZ() + 1);
+        level.addFreshEntity(entity);
+
+        cage.clearMob();
+
+        level.playSound(null, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1f, 1f);
+        player.sendSystemMessage(Component.literal("Mob released!"));
     }
 
     @Override
@@ -163,8 +174,7 @@ public class CageBlock extends BaseEntityBlock {
 
 
     @Override
-    public void setPlacedBy(Level level, BlockPos pos, BlockState state,
-                            @Nullable LivingEntity placer, ItemStack stack) {
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
 
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof CageBlockEntity cage) {

@@ -66,9 +66,10 @@ public class BoxBlockItem extends BlockItem {
         HolderLookup.Provider registries = level.registryAccess();
 
         CompoundTag storedTag = new CompoundTag();
-        BlockState.CODEC.encodeStart(
-                registries.createSerializationContext(NbtOps.INSTANCE), targetState
-        ).result().ifPresent(tag -> storedTag.put("BlockState", tag));
+        BlockState.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), targetState)
+                .result()
+                .ifPresent(tag -> storedTag.put("BlockState", tag));
+
         storedTag.putString("BlockId", BuiltInRegistries.BLOCK.getKey(targetState.getBlock()).toString());
 
         BlockEntity targetBE = level.getBlockEntity(targetPos);
@@ -97,7 +98,8 @@ public class BoxBlockItem extends BlockItem {
         }
 
         level.playSound(null, targetPos, SoundEvents.CHEST_CLOSE, SoundSource.BLOCKS, 1f, 1.2f);
-        player.sendSystemMessage(Component.literal("Stored: ").append(targetState.getBlock().getName()));
+        player.sendSystemMessage(Component.literal("Stored: ")
+                .append(targetState.getBlock().getName()));
 
         return InteractionResult.SUCCESS;
     }

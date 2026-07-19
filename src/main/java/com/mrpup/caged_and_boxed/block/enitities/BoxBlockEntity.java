@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,7 +72,7 @@ public class BoxBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput input) {
+    protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
 
         this.storedTag = input.read(TAG_STORED, CompoundTag.CODEC).orElse(null);
@@ -88,11 +89,9 @@ public class BoxBlockEntity extends BlockEntity {
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
 
-        try (ProblemReporter.ScopedCollector reporter =
-                     new ProblemReporter.ScopedCollector(this.problemPath(), null)) {
+        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(this.problemPath(), null)) {
 
-            TagValueOutput output =
-                    TagValueOutput.createWithContext(reporter, registries);
+            TagValueOutput output = TagValueOutput.createWithContext(reporter, registries);
 
             this.saveAdditional(output);
         }
