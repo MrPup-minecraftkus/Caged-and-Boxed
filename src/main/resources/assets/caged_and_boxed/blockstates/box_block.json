@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "caged_and_boxed:block/box_block"
+    }
+  }
+}
